@@ -17,4 +17,8 @@ int cc_count_sequential(const CSCBinaryMatrix *matrix);
  */
 int cc_count_parallel_omp(const CSCBinaryMatrix *matrix);
 
+int cc_count_parallel_cilk(const CSCBinaryMatrix *matrix);
+
+int cc_count_parallel_pthreads(const CSCBinaryMatrix *matrix);
+
 #endif

@@ -54,7 +54,9 @@ int main(int argc, char *argv[]) {
         #if defined(USE_OPENMP)
         num_components = cc_count_parallel_omp(matrix);
         #elif defined(USE_PTHREADS)
+        num_components = cc_count_parallel_pthreads(matrix);
         #elif defined(USE_CILK)
+        num_components = cc_count_parallel_cilk(matrix);       
         #elif defined(USE_SEQUENTIAL)
         num_components = cc_count_sequential(matrix);
         #endif
