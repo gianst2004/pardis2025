@@ -283,7 +283,7 @@ benchmark_print(Benchmark *b)
     printf("  },\n");
     printf("  \"benchmark_info\": {\n");
     printf("    \"threads\": %u,\n", b->n_threads);
-    printf("    \"trials\": %u,\n", b->n_trials);
+    printf("    \"trials\": %u\n", b->n_trials);
     printf("  },\n");
     printf("  \"results\": [\n");
     printf("    {\n");
@@ -294,7 +294,7 @@ benchmark_print(Benchmark *b)
     printf("        \"std_dev_s\": %.6f,\n", b->time_stddev);
     printf("        \"median_time_s\": %.6f,\n", b->time_median);
     printf("        \"min_time_s\": %.6f,\n", b->time_min);
-    printf("        \"max_time_s\": %.6f,\n", b->time_max);
+    printf("        \"max_time_s\": %.6f\n", b->time_max);
     printf("      },\n");
     printf("      \"throughput_edges_per_sec\": %.2f,\n", throughput);
     printf("      \"memory_peak_mb\": %.2f\n", mem_peak);
