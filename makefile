@@ -409,6 +409,17 @@ benchmark: all
 	fi
 	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) $(MATRIX)
 
+.PHONY: benchmark-save
+benchmark-save: all
+	@$(ECHO) "$(COLOR_YELLOW)Running benchmark...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make bench-full MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"; \
+		exit 1; \
+	fi
+	@mkdir -p benchmarks
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) $(MATRIX) > benchmarks/benchmark-result-$(shell date +%Y%m%d_%H%M%S).json
+
 .PHONY: help
 help:
 	@$(ECHO) "$(COLOR_GREEN)════════════════════════════════════════$(COLOR_RESET)"
@@ -416,26 +427,28 @@ help:
 	@$(ECHO) "$(COLOR_GREEN)════════════════════════════════════════$(COLOR_RESET)"
 	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Building:$(COLOR_RESET)"
-	@$(ECHO) "  $(COLOR_MAGENTA)all$(COLOR_RESET)           - Build all implementations (default)"
-	@$(ECHO) "  $(COLOR_MAGENTA)sequential$(COLOR_RESET)    - Build only sequential version"
-	@$(ECHO) "  $(COLOR_MAGENTA)openmp$(COLOR_RESET)        - Build only OpenMP version"
-	@$(ECHO) "  $(COLOR_MAGENTA)pthreads$(COLOR_RESET)      - Build only Pthreads version"
-	@$(ECHO) "  $(COLOR_MAGENTA)cilk$(COLOR_RESET)          - Build only Cilk version"
-	@$(ECHO) "  $(COLOR_MAGENTA)runner$(COLOR_RESET)        - Build only benchmark runner"
-	@$(ECHO) "  $(COLOR_MAGENTA)clean$(COLOR_RESET)         - Remove build artifacts"
-	@$(ECHO) "  $(COLOR_MAGENTA)rebuild$(COLOR_RESET)       - Clean and build all"
+	@$(ECHO) "  $(COLOR_MAGENTA)all$(COLOR_RESET)            - Build all implementations (default)"
+	@$(ECHO) "  $(COLOR_MAGENTA)sequential$(COLOR_RESET)     - Build only sequential version"
+	@$(ECHO) "  $(COLOR_MAGENTA)openmp$(COLOR_RESET)         - Build only OpenMP version"
+	@$(ECHO) "  $(COLOR_MAGENTA)pthreads$(COLOR_RESET)       - Build only Pthreads version"
+	@$(ECHO) "  $(COLOR_MAGENTA)cilk$(COLOR_RESET)           - Build only Cilk version"
+	@$(ECHO) "  $(COLOR_MAGENTA)runner$(COLOR_RESET)         - Build only benchmark runner"
+	@$(ECHO) "  $(COLOR_MAGENTA)clean$(COLOR_RESET)          - Remove build artifacts"
+	@$(ECHO) "  $(COLOR_MAGENTA)rebuild$(COLOR_RESET)        - Clean and build all"
 	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Benchmarking:$(COLOR_RESET)"
-	@$(ECHO) "  $(COLOR_MAGENTA)benchmark$(COLOR_RESET)    - Full benchmark with custom settings"
+	@$(ECHO) "  $(COLOR_MAGENTA)benchmark$(COLOR_RESET)      - Full benchmark with custom settings"
 	@$(ECHO) "                   Usage: make benchmark MATRIX=path/to/matrix.mat [THREADS=4] [TRIALS=10]"
-	@echo ""
+	@$(ECHO) "  $(COLOR_MAGENTA)benchmark-save$(COLOR_RESET) - same as benchmark, but saves the output to"
+	@$(ECHO) "                   a .json file in the benchmarks directory"
+	@$(ECHO) ""
 	@$(ECHO) "$(COLOR_BLUE)Information:$(COLOR_RESET)"
-	@$(ECHO) "  $(COLOR_MAGENTA)info$(COLOR_RESET)          - Show build configuration"
-	@$(ECHO) "  $(COLOR_MAGENTA)tree$(COLOR_RESET)          - Show project structure"
-	@$(ECHO) "  $(COLOR_MAGENTA)list-sources$(COLOR_RESET)  - List all source files by category"
-	@$(ECHO) "  $(COLOR_MAGENTA)list-binaries$(COLOR_RESET) - List all executables and their status"
-	@$(ECHO) "  $(COLOR_MAGENTA)check-deps$(COLOR_RESET)    - Verify dependencies are installed"
-	@$(ECHO) "  $(COLOR_MAGENTA)help$(COLOR_RESET)          - Show this message"
+	@$(ECHO) "  $(COLOR_MAGENTA)info$(COLOR_RESET)           - Show build configuration"
+	@$(ECHO) "  $(COLOR_MAGENTA)tree$(COLOR_RESET)           - Show project structure"
+	@$(ECHO) "  $(COLOR_MAGENTA)list-sources$(COLOR_RESET)   - List all source files by category"
+	@$(ECHO) "  $(COLOR_MAGENTA)list-binaries$(COLOR_RESET)  - List all executables and their status"
+	@$(ECHO) "  $(COLOR_MAGENTA)check-deps$(COLOR_RESET)     - Verify dependencies are installed"
+	@$(ECHO) "  $(COLOR_MAGENTA)help$(COLOR_RESET)           - Show this message"
 	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Examples:$(COLOR_RESET)"
 	@$(ECHO) "  make                                    # Build all versions"
@@ -450,4 +463,4 @@ help:
 
 .PHONY: all clean rebuild tree list-sources info check-deps help \
         sequential openmp pthreads cilk runner list-binaries \
-        benchmark
+        benchmark benchmark-save

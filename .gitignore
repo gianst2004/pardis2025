@@ -2,6 +2,7 @@ data/
 obj/
 build/
 bin/
+benchmarks/
 
 .cache/
 .vscode/
