@@ -407,7 +407,7 @@ benchmark: all
 		$(ECHO) "Usage: make bench-full MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"; \
 		exit 1; \
 	fi
-	@$(RUNNER_TARGET) $(MATRIX) $(if $(THREADS),$(THREADS),8) $(if $(TRIALS),$(TRIALS),10)
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) $(MATRIX)
 
 .PHONY: help
 help:
