@@ -34,7 +34,7 @@ typedef struct {
  */
 static int
 run_benchmark(const char *binary, const char *matrix_file,
-              int threads, int trials, char **output)
+              int threads, int trials, int algorithm_variant, char **output)
 {
     int pipe_fd[2];
     if (pipe(pipe_fd) == -1) {
@@ -57,11 +57,12 @@ run_benchmark(const char *binary, const char *matrix_file,
         dup2(pipe_fd[1], STDERR_FILENO);
         close(pipe_fd[1]);
 
-        char threads_str[16], trials_str[16];
+        char threads_str[16], trials_str[16], variant_str[16];
         snprintf(threads_str, sizeof(threads_str), "%d", threads);
         snprintf(trials_str, sizeof(trials_str), "%d", trials);
+        snprintf(variant_str, sizeof(variant_str), "%u", algorithm_variant);
 
-        execl(binary, binary, "-t", threads_str, "-n", trials_str, matrix_file, NULL);
+        execl(binary, binary, "-t", threads_str, "-n", trials_str, "-v", variant_str, matrix_file, NULL);
         exit(1);
     }
 
@@ -191,10 +192,11 @@ main(int argc, char *argv[])
     set_program_name(argv[0]);
 
     char *matrix_file = NULL;
-    int threads;
-    int trials;
+    unsigned int threads;
+    unsigned int trials;
+    unsigned int algorithm_variant;
 
-    int parse_status = parseargs(argc, argv, &threads, &trials, &matrix_file);
+    int parse_status = parseargs(argc, argv, &threads, &trials, &algorithm_variant, &matrix_file);
     if (parse_status != 0) return parse_status == -1 ? 0 : 1;
 
     if (threads <= 0 || trials <= 0) {
@@ -232,7 +234,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "[%s] Running...\n", results[i].name);
         
         int ret = run_benchmark(results[i].binary_path, matrix_file,
-                               threads, trials, &results[i].output);
+                               threads, trials, algorithm_variant, &results[i].output);
         
         if (ret == 0) {
             // Parse the output

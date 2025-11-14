@@ -52,7 +52,7 @@ static int union_sets(uint32_t *label, uint32_t x, uint32_t y) {
     return 0;
 }
 
-int cc_cilk(const CSCBinaryMatrix *matrix, const int n_threads __attribute__((unused))) {
+int cc_cilk(const CSCBinaryMatrix *matrix, const unsigned int n_threads __attribute__((unused)), const unsigned int algorithm_variant __attribute__((unused))) {
     if (!matrix || matrix->nrows == 0) return 0;
     
     uint32_t *label = (uint32_t*)malloc(sizeof(uint32_t) * matrix->nrows);

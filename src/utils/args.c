@@ -51,11 +51,12 @@ usage(void) {
         "Options:\n"
         "  -t <threads>       Number of threads to use (default: 8)\n"
         "  -n <trials>        Number of benchmark trials (default: 3)\n"
+        "  -v <variant>       Algorithm variant (0=standard, 1=optimized, default: 0)\n"
         "  -h                 Show this help message and exit\n\n"
         "Arguments:\n"
         "  matrix_file Path to the input matrix file (Matlab Matrix format)\n\n"
         "Example:\n"
-        "  %s -t 4 -n 10 ./data/matrix.mat\n",
+        "  %s -t 4 -n 10 -v 1 ./data/matrix.mat\n",
         program_name, program_name
     );
 }
@@ -63,16 +64,22 @@ usage(void) {
 /**
  * @copydoc parseargs()
  */
-int parseargs(int argc, char *argv[], int *n_threads, int *n_trials, char **filepath)
+int
+parseargs(int argc, char *argv[],
+          unsigned int *n_threads,
+          unsigned int *n_trials,
+          unsigned int *algorithm_variant,
+          char **filepath)
 {
     *n_threads = 8;
     *n_trials = 3;
+    *algorithm_variant = 0;
     *filepath = NULL;
 
     opterr = 0;
 
     int opt;
-    while ((opt = getopt(argc, argv, "+t:n:h")) != -1) {
+    while ((opt = getopt(argc, argv, "+t:n:v:h")) != -1) {
         switch (opt) {
         case 't':
         case 'n': {
@@ -84,7 +91,7 @@ int parseargs(int argc, char *argv[], int *n_threads, int *n_trials, char **file
                 return 1;
             }
             int val = atoi(optarg);
-            if (val <= 0) {
+            if (!val) {
                 char err[128];
                 snprintf(err, sizeof(err), "%s must be > 0", (opt == 't') ? "threads" : "trials");
                 print_error(__func__, err, 0);
@@ -98,6 +105,22 @@ int parseargs(int argc, char *argv[], int *n_threads, int *n_trials, char **file
         case 'h':
             usage();
             return -1;
+        
+        case 'v': {
+            if (!optarg || !isuint(optarg)) {
+                print_error(__func__, "invalid argument for -v (must be 0 or 1)", 0);
+                usage();
+                return 1;
+            }
+            int val = atoi(optarg);
+            if (val < 0 || val > 1) {
+                print_error(__func__, "variant must be 0 or 1", 0);
+                usage();
+                return 1;
+            }
+            *algorithm_variant = (unsigned int)val;
+            break;
+        }
 
         case '?':
         default: {

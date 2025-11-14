@@ -16,6 +16,7 @@
  * Supported options:
  *   -t <threads>   Number of threads (default: 8)
  *   -n <trials>    Number of trials (default: 3)
+ *   -v <variant>   Algorithm variant: 0=standard, 1=optimized (default: 0)
  *   -h             Show usage and exit
  *
  * Arguments:
@@ -27,9 +28,10 @@
  * @param argv Argument vector
  * @param n_threads Output: number of threads
  * @param n_trials Output: number of trials
+ * @param algorithm_variant Output: variant of algorithm
  * @param filepath Output: path to matrix file
  * @return 0 on success, -1 if help requested, 1 on error
  */
-int parseargs(int argc, char *argv[], int *n_threads, int *n_trials, char **filepath);
+int parseargs(int argc, char *argv[], unsigned int *n_threads, unsigned int *n_trials, unsigned int *algorithm_variant, char **filepath);
 
 #endif /* ARGS_H */

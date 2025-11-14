@@ -34,14 +34,15 @@ typedef struct {
  * Contains all measured and computed metrics for one algorithm implementation.
  */
 typedef struct {
-    char algorithm[32];                /**< Algorithm name (e.g., "Sequential", "OpenMP") */
-    int connected_components;          /**< Number of connected components found */
-    Statistics stats;                  /**< Timing statistics */
-    double throughput_edges_per_sec;   /**< Processing throughput in edges per second */
-    double memory_peak_mb;             /**< Peak memory usage in megabytes */
-    double speedup;                    /**< Speedup relative to sequential baseline */
-    double efficiency;                 /**< Parallel efficiency (speedup / threads) */
-    int has_metrics;                   /**< Flag indicating if speedup/efficiency are valid */
+    char algorithm[32];                  /**< Algorithm name (e.g., "Sequential", "OpenMP") */
+    unsigned int algorithm_variant;      /**< Algorithm variant (0: original, 1: optimized) */
+    unsigned int connected_components;   /**< Number of connected components found */
+    Statistics stats;                    /**< Timing statistics */
+    double throughput_edges_per_sec;     /**< Processing throughput in edges per second */
+    double memory_peak_mb;               /**< Peak memory usage in megabytes */
+    double speedup;                      /**< Speedup relative to sequential baseline */
+    double efficiency;                   /**< Parallel efficiency (speedup / threads) */
+    unsigned int has_metrics;            /**< Flag indicating if speedup/efficiency are valid */
 } Result;
 
 /**
@@ -66,10 +67,10 @@ typedef struct {
  * components algorithm, including its dimensions and sparsity.
  */
 typedef struct {
-    char path[256];  /**< File path to the matrix */
-    int rows;        /**< Number of rows in the matrix */
-    int cols;        /**< Number of columns in the matrix */
-    int nnz;         /**< Number of non-zero elements (edges in graph) */
+    char path[256];     /**< File path to the matrix */
+    unsigned int rows;  /**< Number of rows in the matrix */
+    unsigned int cols;  /**< Number of columns in the matrix */
+    unsigned int nnz;   /**< Number of non-zero elements (edges in graph) */
 } MatrixInfo;
 
 /**
@@ -79,8 +80,8 @@ typedef struct {
  * Contains the configuration parameters used for running the benchmark.
  */
 typedef struct {
-    int threads;  /**< Number of threads used for parallel execution */
-    int trials;   /**< Number of benchmark trials performed */
+    unsigned int threads;  /**< Number of threads used for parallel execution */
+    unsigned int trials;   /**< Number of benchmark trials performed */
 } BenchmarkInfo;
 
 /**
@@ -112,6 +113,7 @@ Benchmark* benchmark_init(const char *name,
                           const char *filepath,
                           const unsigned int n_trials,
                           const unsigned int n_threads,
+                          const unsigned int algorithm_variant,
                           const CSCBinaryMatrix *mat);
 
 /**
@@ -136,7 +138,7 @@ void benchmark_free(Benchmark *b);
  * - `1` on algorithm failure or invalid data,
  * - `2` if results differ between trials.
  */
-int benchmark_cc(int (*cc_func)(const CSCBinaryMatrix*, const int), const CSCBinaryMatrix *m, Benchmark *b);
+int benchmark_cc(int (*cc_func)(const CSCBinaryMatrix*, const unsigned int, const unsigned int), const CSCBinaryMatrix *m, Benchmark *b);
 
 /**
  * @brief Prints benchmark results in structured JSON format.

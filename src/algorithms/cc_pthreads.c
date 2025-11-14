@@ -125,7 +125,7 @@ static void* count_roots_thread(void *arg) {
     return NULL;
 }
 
-int cc_pthreads(const CSCBinaryMatrix *matrix, const int n_threads __attribute__((unused))) {
+int cc_pthreads(const CSCBinaryMatrix *matrix, const unsigned int n_threads __attribute__((unused)), const unsigned int algorithm_variant __attribute__((unused))) {
     if (!matrix || matrix->nrows == 0) return 0;
     
     // Get number of threads (default to 4, can be set via environment)

@@ -47,16 +47,17 @@ main(int argc, char *argv[])
     CSCBinaryMatrix *matrix;
     Benchmark *benchmark = NULL;
     char *filepath;
-    int n_trials = 3;
-    int n_threads = 8;
+    unsigned int n_trials;
+    unsigned int n_threads;
+    unsigned int algorithm_variant;
     int ret = 0;
-    int (*cc_func)(const CSCBinaryMatrix*, const int);
+    int (*cc_func)(const CSCBinaryMatrix*, const unsigned int, const unsigned int);
 
     /* Initialize program name for error reporting */
     set_program_name(argv[0]);
 
     /* Parse command line arguments */
-    if (parseargs(argc, argv, &n_threads, &n_trials, &filepath)) {
+    if (parseargs(argc, argv, &n_threads, &n_trials, &algorithm_variant, &filepath)) {
         return 1;
     }
     
@@ -66,7 +67,7 @@ main(int argc, char *argv[])
         return 1;
 
     /* Initialize benchmarking structure */
-    benchmark = benchmark_init(IMPLEMENTATION_NAME, filepath, n_trials, n_threads, matrix);
+    benchmark = benchmark_init(IMPLEMENTATION_NAME, filepath, n_trials, n_threads, algorithm_variant, matrix);
     if (!benchmark) {
         csc_free_matrix(matrix);
         return 1;

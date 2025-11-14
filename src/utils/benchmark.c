@@ -168,6 +168,7 @@ benchmark_init(const char *name,
                const char *filepath,
                const unsigned int n_trials,
                const unsigned int n_threads,
+               const unsigned int algorithm_variant,
                const CSCBinaryMatrix *mat)
 {
     if (!n_trials) {
@@ -194,6 +195,7 @@ benchmark_init(const char *name,
 
     // Add result
     b->result.has_metrics = 0;
+    b->result.algorithm_variant = algorithm_variant;
     strncpy(b->result.algorithm, name, sizeof(b->result.algorithm));
     b->result.algorithm[sizeof(b->result.algorithm) - 1] = '\0';
 
@@ -224,15 +226,22 @@ benchmark_free(Benchmark *b)
  * @copydoc benchmark_cc()
  */
 int
-benchmark_cc(int (*cc_func)(const CSCBinaryMatrix*, const int),
-                 const CSCBinaryMatrix *m,
-                 Benchmark *b)
+benchmark_cc(int (*cc_func)(const CSCBinaryMatrix*, const unsigned int, const unsigned int),
+             const CSCBinaryMatrix *m,
+             Benchmark *b)
 {
-    b->result.connected_components = cc_func(m, b->benchmark_info.threads); /* warm-up run */
+    long result;
 
-    for (int i = 0; i < b->benchmark_info.trials; i++) {
+    result = cc_func(m, b->benchmark_info.threads, b->result.algorithm_variant); /* warm-up run */
+
+    if (result < 0)
+        return 1;
+
+    b->result.connected_components = result;
+
+    for (unsigned int i = 0; i < b->benchmark_info.trials; i++) {
         double start_time = now_sec();
-        int result = cc_func(m, b->benchmark_info.threads);
+        result = cc_func(m, b->benchmark_info.threads, b->result.algorithm_variant);
         b->times[i] = now_sec() - start_time;
 
         if (result < 0)

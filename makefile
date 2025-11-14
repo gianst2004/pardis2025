@@ -404,21 +404,86 @@ benchmark: all
 	@$(ECHO) "$(COLOR_YELLOW)Running benchmark...$(COLOR_RESET)"
 	@if [ -z "$(MATRIX)" ]; then \
 		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
-		$(ECHO) "Usage: make bench-full MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"; \
+		$(ECHO) "Usage: make benchmark MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10] [VARIANT=0]"; \
 		exit 1; \
 	fi
-	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) $(MATRIX)
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
 
 .PHONY: benchmark-save
 benchmark-save: all
-	@$(ECHO) "$(COLOR_YELLOW)Running benchmark...$(COLOR_RESET)"
+	@$(ECHO) "$(COLOR_YELLOW)Running benchmark and saving results...$(COLOR_RESET)"
 	@if [ -z "$(MATRIX)" ]; then \
 		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
-		$(ECHO) "Usage: make bench-full MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"; \
+		$(ECHO) "Usage: make benchmark-save MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10] [VARIANT=0]"; \
 		exit 1; \
 	fi
 	@mkdir -p benchmarks
-	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) $(MATRIX) > benchmarks/benchmark-result-$(shell date +%Y%m%d_%H%M%S).json
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX) > benchmarks/benchmark-result-$(shell date +%Y%m%d_%H%M%S).json
+
+# Compare both variants side-by-side
+.PHONY: benchmark-compare
+benchmark-compare: all
+	@$(ECHO) "$(COLOR_YELLOW)Running benchmark comparison (variant 0 vs variant 1)...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make benchmark-compare MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"; \
+		exit 1; \
+	fi
+	@mkdir -p benchmarks
+	@$(ECHO) "$(COLOR_CYAN)Running variant 0 (standard)...$(COLOR_RESET)"
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) -v 0 $(MATRIX) > benchmarks/variant0-$(shell date +%Y%m%d_%H%M%S).json
+	@$(ECHO) "$(COLOR_CYAN)Running variant 1 (optimized)...$(COLOR_RESET)"
+	@$(RUNNER_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),10) -v 1 $(MATRIX) > benchmarks/variant1-$(shell date +%Y%m%d_%H%M%S).json
+	@$(ECHO) "$(COLOR_GREEN)✓ Comparison complete. Results saved to benchmarks/$(COLOR_RESET)"
+
+# Run individual implementation with variant
+.PHONY: run-sequential run-openmp run-pthreads run-cilk
+run-sequential: sequential
+	@$(ECHO) "$(COLOR_YELLOW)Running sequential implementation...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make run-sequential MATRIX=path/to/matrix.mat [THREADS=1] [TRIALS=3] [VARIANT=0]"; \
+		exit 1; \
+	fi
+	@$(SEQUENTIAL_TARGET) -t $(if $(THREADS),$(THREADS),1) -n $(if $(TRIALS),$(TRIALS),3) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
+
+run-openmp: openmp
+	@$(ECHO) "$(COLOR_YELLOW)Running OpenMP implementation...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make run-openmp MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=3] [VARIANT=0]"; \
+		exit 1; \
+	fi
+	@$(OPENMP_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),3) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
+
+run-pthreads: pthreads
+	@$(ECHO) "$(COLOR_YELLOW)Running Pthreads implementation...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make run-pthreads MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=3] [VARIANT=0]"; \
+		exit 1; \
+	fi
+	@$(PTHREADS_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),3) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
+
+run-cilk: cilk
+	@$(ECHO) "$(COLOR_YELLOW)Running Cilk implementation...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make run-cilk MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=3] [VARIANT=0]"; \
+		exit 1; \
+	fi
+	@$(CILK_TARGET) -t $(if $(THREADS),$(THREADS),8) -n $(if $(TRIALS),$(TRIALS),3) -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
+
+# Quick test with default settings
+.PHONY: test
+test: all
+	@$(ECHO) "$(COLOR_YELLOW)Running quick test...$(COLOR_RESET)"
+	@if [ -z "$(MATRIX)" ]; then \
+		$(ECHO) "$(COLOR_RED)Error: MATRIX variable not set$(COLOR_RESET)"; \
+		$(ECHO) "Usage: make test MATRIX=path/to/matrix.mat [VARIANT=0]"; \
+		exit 1; \
+	fi
+	@$(RUNNER_TARGET) -t 4 -n 1 -v $(if $(VARIANT),$(VARIANT),0) $(MATRIX)
 
 .PHONY: help
 help:
@@ -437,11 +502,22 @@ help:
 	@$(ECHO) "  $(COLOR_MAGENTA)rebuild$(COLOR_RESET)        - Clean and build all"
 	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Benchmarking:$(COLOR_RESET)"
-	@$(ECHO) "  $(COLOR_MAGENTA)benchmark$(COLOR_RESET)      - Full benchmark with custom settings"
-	@$(ECHO) "                   Usage: make benchmark MATRIX=path/to/matrix.mat [THREADS=4] [TRIALS=10]"
-	@$(ECHO) "  $(COLOR_MAGENTA)benchmark-save$(COLOR_RESET) - same as benchmark, but saves the output to"
-	@$(ECHO) "                   a .json file in the benchmarks directory"
-	@$(ECHO) ""
+	@$(ECHO) "  $(COLOR_MAGENTA)benchmark$(COLOR_RESET)         - Run full benchmark suite"
+	@$(ECHO) "                      Usage: make benchmark MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10] [VARIANT=0]"
+	@$(ECHO) "  $(COLOR_MAGENTA)benchmark-save$(COLOR_RESET)    - Run benchmark and save results to JSON"
+	@$(ECHO) "                      Usage: make benchmark-save MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10] [VARIANT=0]"
+	@$(ECHO) "  $(COLOR_MAGENTA)benchmark-compare$(COLOR_RESET) - Compare variant 0 vs variant 1"
+	@$(ECHO) "                      Usage: make benchmark-compare MATRIX=path/to/matrix.mat [THREADS=8] [TRIALS=10]"
+	@$(ECHO) "  $(COLOR_MAGENTA)test$(COLOR_RESET)              - Quick test with default settings"
+	@$(ECHO) "                      Usage: make test MATRIX=path/to/matrix.mat [VARIANT=0]"
+	@echo ""
+	@$(ECHO) "$(COLOR_BLUE)Running Individual Implementations:$(COLOR_RESET)"
+	@$(ECHO) "  $(COLOR_MAGENTA)run-sequential$(COLOR_RESET)  - Run sequential version"
+	@$(ECHO) "  $(COLOR_MAGENTA)run-openmp$(COLOR_RESET)      - Run OpenMP version"
+	@$(ECHO) "  $(COLOR_MAGENTA)run-pthreads$(COLOR_RESET)    - Run Pthreads version"
+	@$(ECHO) "  $(COLOR_MAGENTA)run-cilk$(COLOR_RESET)        - Run Cilk version"
+	@$(ECHO) "                   Usage: make run-<impl> MATRIX=path [THREADS=8] [TRIALS=3] [VARIANT=0]"
+	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Information:$(COLOR_RESET)"
 	@$(ECHO) "  $(COLOR_MAGENTA)info$(COLOR_RESET)           - Show build configuration"
 	@$(ECHO) "  $(COLOR_MAGENTA)tree$(COLOR_RESET)           - Show project structure"
@@ -450,17 +526,23 @@ help:
 	@$(ECHO) "  $(COLOR_MAGENTA)check-deps$(COLOR_RESET)     - Verify dependencies are installed"
 	@$(ECHO) "  $(COLOR_MAGENTA)help$(COLOR_RESET)           - Show this message"
 	@echo ""
+	@$(ECHO) "$(COLOR_BLUE)Parameters:$(COLOR_RESET)"
+	@$(ECHO) "  $(COLOR_CYAN)MATRIX$(COLOR_RESET)   - Path to input matrix file (required for running)"
+	@$(ECHO) "  $(COLOR_CYAN)THREADS$(COLOR_RESET)  - Number of threads (default: 8)"
+	@$(ECHO) "  $(COLOR_CYAN)TRIALS$(COLOR_RESET)   - Number of benchmark trials (default: 10 for benchmark, 3 for run-*)"
+	@$(ECHO) "  $(COLOR_CYAN)VARIANT$(COLOR_RESET)  - Algorithm variant: 0=standard, 1=optimized (default: 0)"
+	@echo ""
 	@$(ECHO) "$(COLOR_BLUE)Examples:$(COLOR_RESET)"
-	@$(ECHO) "  make                                    # Build all versions"
+	@$(ECHO) "  make                                           # Build all versions"
+	@$(ECHO) "  make test MATRIX=data/test.mat                 # Quick test"
 	@$(ECHO) "  make benchmark MATRIX=data/test.mat THREADS=8 TRIALS=20"
+	@$(ECHO) "  make benchmark-compare MATRIX=data/test.mat    # Compare variants"
+	@$(ECHO) "  make run-openmp MATRIX=data/test.mat VARIANT=1 # Run OpenMP with variant 1"
 	@echo ""
 
 .DEFAULT_GOAL := all
 
-# ============================================
-# Phony targets (prevent conflicts with files)
-# ============================================
-
 .PHONY: all clean rebuild tree list-sources info check-deps help \
         sequential openmp pthreads cilk runner list-binaries \
-        benchmark benchmark-save
+        benchmark benchmark-save benchmark-compare test \
+        run-sequential run-openmp run-pthreads run-cilk

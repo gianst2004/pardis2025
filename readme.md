@@ -163,7 +163,7 @@ make tree
 
 ---
 
-## 📈 Example Output
+## Example Output
 
 Sample benchmark JSON:
 
